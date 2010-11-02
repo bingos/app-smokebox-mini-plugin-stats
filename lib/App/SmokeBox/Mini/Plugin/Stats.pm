@@ -7,6 +7,7 @@ use warnings;
 use File::Spec;
 use POE qw[Component::EasyDBI];
 use App::SmokeBox::Mini;
+use Time::HiRes ();
 
 use constant STATSDB => 'stats.db';
 
@@ -55,8 +56,8 @@ sub _create_db {
     sql => $_,
     event => '_db_result',
   ) for (
-    q[CREATE TABLE IF NOT EXISTS jobs ( vers varchar(20), arch varchar(100), job BLOB, start varchar(32), end varchar(32), killed integer, status integer )],
-    q[CREATE TABLE IF NOT EXISTS smokers ( vers varchar(20), arch varchar(100), start varchar(32), end varchar(32), total integer, idle integer, excess integer, average varchar(32), minimum varchar(32), maximum varchar(32) )],
+    q[CREATE TABLE IF NOT EXISTS jobs ( ts varchar(32), vers varchar(20), arch varchar(100), job BLOB, start varchar(32), end varchar(32), killed integer, status integer )],
+    q[CREATE TABLE IF NOT EXISTS smokers ( ts varchar(32), vers varchar(20), arch varchar(100), start varchar(32), end varchar(32), total integer, idle integer, excess integer, average varchar(32), minimum varchar(32), maximum varchar(32) )],
   );
 
   return;
@@ -84,7 +85,7 @@ sub sbox_smoke {
   my $killed = scalar grep { /kill$/ } keys %{ $result };
   $heap->{_db}->insert(
     sql => 'INSERT INTO jobs values(?,?,?,?,?,?,?)',
-    placeholders => [ $heap->{vers}, $heap->{arch}, $dist, $result->{start_time}, $result->{end_time}, $killed, $result->{status} ],
+    placeholders => [ Time::HiRes::time, $heap->{vers}, $heap->{arch}, $dist, $result->{start_time}, $result->{end_time}, $killed, $result->{status} ],
     event => '_db_result',
   );
   return;
@@ -94,8 +95,8 @@ sub sbox_stop {
   my ($kernel,$heap,@stats) = @_[KERNEL,HEAP,ARG0..$#_];
   $heap->{terminate} = 1;
   $heap->{_db}->insert(
-    sql => 'INSERT INTO smokers values(?,?,?,?,?,?,?,?,?,?)',
-    placeholders => [ $heap->{vers}, $heap->{arch}, @stats ],
+    sql => 'INSERT INTO smokers values(?,?,?,?,?,?,?,?,?,?,?)',
+    placeholders => [ Time::HiRes::time, $heap->{vers}, $heap->{arch}, @stats ],
     event => '_db_result',
   );
   return;
