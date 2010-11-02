@@ -84,7 +84,7 @@ sub sbox_smoke {
   my ($result) = $data->{result}->results;
   my $killed = scalar grep { /kill$/ } keys %{ $result };
   $heap->{_db}->insert(
-    sql => 'INSERT INTO jobs values(?,?,?,?,?,?,?)',
+    sql => 'INSERT INTO jobs values(?,?,?,?,?,?,?,?)',
     placeholders => [ Time::HiRes::time, $heap->{vers}, $heap->{arch}, $dist, $result->{start_time}, $result->{end_time}, $killed, $result->{status} ],
     event => '_db_result',
   );
