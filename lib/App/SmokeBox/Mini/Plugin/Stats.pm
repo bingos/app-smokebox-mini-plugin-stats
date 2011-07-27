@@ -15,7 +15,8 @@ sub init {
   my $package = shift;
   my $config  = shift;
   return unless $config and ref $config eq 'Config::Tiny';
-  #return unless $config->{Stats};
+  return if
+    $config->{Stats} and defined $config->{Stats}->{enable} and !$config->{Stats}->{enable};
   my $heap = $config->{Stats} || {};
   POE::Session->create(
      package_states => [
@@ -115,12 +116,32 @@ q[lies, damned lies and statistics];
 
 =pod
 
+=head1 SYNOPSIS
+
+  # example minismokebox configuration file
+
+  [Stats]
+
+  enable=0
+
 =head1 DESCRIPTION
 
-App::SmokeBox::Mini::Plugin::Stats is a statistics gathering plugin for L<App::SmokeBox::Mini> and 
+App::SmokeBox::Mini::Plugin::Stats is a statistics gathering plugin for L<App::SmokeBox::Mini> and
 L<minismokebox> that collects all jobs and smokers data and logs it to a L<DBD::SQLite> based database.
 
-The database file will be found in the C<.smokebox> directory, see L<minismokebox> documentation for 
+The database file will be found in the C<.smokebox> directory, see L<minismokebox> documentation for
 details of its location and how to affect its location.
+
+=head1 CONFIGURATION
+
+This plugin uses an C<[Stats]> section within the L<minismokebox> configuration file.
+
+=over
+
+=item C<enable>
+
+By default the plugin is enabled. You may set this to a C<false> value to disable the use of the plugin
+
+=back
 
 =cut
